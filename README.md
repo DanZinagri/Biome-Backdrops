@@ -97,9 +97,9 @@ Settings have two tabs. Changes to the biome and background lists apply the next
 - With Vanilla Backgrounds Expanded active, the list is every still background VBE knows (`VBEMod.AllDefsInOrder`): vanilla DLC art, add-on packs, and the player's custom folder.
   - Animated (video) entries and art for inactive DLCs are skipped.
   - VBE's own menu selection is ignored. This tab is the only place that chooses which backgrounds become backdrops.
-  - All VBE code is in `VbeBackgrounds.cs`, which only runs when VBE is active, so VBE is a soft dependency.
+  - VBE is read through reflection in `VbeBackgrounds.cs`, and the DLL has no reference to it. Even a reference whose code only runs when VBE is active breaks without VBE: the lambda caches the compiler generates get static fields typed with VBE classes, and at startup the game resolves the type of every static field (`ReportProbablyMissingAttributes`).
 - Without VBE, the list is the active expansions' `ExpansionDef.BackgroundImage`. VBE names its vanilla entries after the ExpansionDef, so a DLC background you switch off stays off whether or not VBE is installed.
 
 ## Building
 
-`dotnet build Source/BiomeBackdrops.csproj` writes to `1.7/Assemblies`. It references the 1.7 game root (`Assembly-CSharp.dll`, `UnityStubs.dll`), Harmony's 1.7 folder, VBE's 1.6 DLL, and the Unity facades in `RimWorldModding\RimWorld-1.7-UnityFacades`. VBE's DLL mentions Unity types, so the compiler needs the facades.
+`dotnet build Source/BiomeBackdrops.csproj` writes to `1.7/Assemblies`. It references the 1.7 game root (`Assembly-CSharp.dll`, `UnityStubs.dll`), and Harmony's 1.7 folder. It has no VBE reference, on purpose.

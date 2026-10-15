@@ -25,15 +25,7 @@
       <HintPath>E:\SteamLibrary\steamapps\common\RimWorld\UnityStubs.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <!-- Vanilla Backgrounds Expanded loads its 1.6 DLL on 1.7 (2026-10-14). Only VbeBackgrounds.cs
-         touches it, and that class is only called when VBE is active, so it is not a hard dependency. -->
-    <Reference Include="VBE">
-      <HintPath>E:\SteamLibrary\steamapps\workshop\content\294100\2775017012\1.6\Assemblies\VBE.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <!-- Compile-time forwarders to UnityStubs, needed because VBE.dll's signatures name Unity types. -->
-    <Reference Include="C:\Users\DanZinagri\Documents\RimWorldModding\RimWorld-1.7-UnityFacades\UnityEngine*.dll">
-      <Private>false</Private>
-    </Reference>
+    <!-- No reference to Vanilla Backgrounds Expanded on purpose: VbeBackgrounds.cs reads it through
+         reflection so the mod loads without it (see the comment there). -->
   </ItemGroup>
 </Project>
