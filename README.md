@@ -4,12 +4,7 @@ RimWorld 1.7 only. Shows a screen-fixed picture in the void beyond the map edge.
 
 ## How it works
 
-Vanilla draws four large quads around the map every frame (`MapEdgeClipDrawer.DrawClippers`) with `map.MapEdgeMaterial`, a flat gray `MetaOverlay` material. A Harmony postfix on that getter returns a material using `DZ_BB_ScreenBackdrop` instead. The shader samples the texture by `gl_FragCoord` and the engine's global `_ScreenParams`, so the picture ignores camera pan and zoom. The quads only mask where it shows.
-
-- No extra draw calls. The only added per-frame cost is a dictionary lookup per map.
-- Orbital maps are never touched, because they show the planet below through the void. Vanilla's `SpaceMapGenerator` family already sets `disableMapClippers`, so no clippers are drawn there. As a backstop, any map whose generator has `renderWorld` or whose biome is `inVacuum` gets no backdrop, which covers modded orbital maps that leave the clippers on.
-- Only the vanilla gray `ClipMat` is replaced. Metal Hell, and world objects or map generators with their own edge material, keep their look.
-- The picture is scaled to cover the screen with its aspect ratio kept. Any excess is cropped.
+Vanilla draws four large quads around the map every frame (`MapEdgeClipDrawer.DrawClippers`) with `map.MapEdgeMaterial`, a flat gray `MetaOverlay` material. A Harmony postfix on that getter returns a material using `DZ_BB_ScreenBackdrop` instead. The shader samples the texture by `gl_FragCoord` and the engine's global `_ScreenParams`, so the picture ignores camera pan and zoom.
 
 ## Adding backdrops to a biome
 
@@ -39,7 +34,7 @@ With several paths, each map picks one at random every time a save is loaded and
 
 Inside a variant, every condition you set has to match, and a condition you leave out matches anything:
 
-- `hilliness`: any of `Flat`, `SmallHills`, `LargeHills`, `Mountainous`. This is the value the world tile inspector shows (`Tile.HillinessLabel`), so tiles with the Plateau or Cliffs mutators count as Mountainous. You can't settle `Impassable` tiles.
+- `hilliness`: any of `Flat`, `SmallHills`, `LargeHills`, `Mountainous`. This is the value the world tile inspector shows (`Tile.HillinessLabel`), so tiles with the Plateau or Cliffs mutators count as Mountainous. You can't settle `Impassable` tiles to my knowledge so while a hilliness setting probably won't come up.
 - `mutators`: matches when the tile has any of the listed `TileMutatorDef`s, such as `Coast`, `River`, `Caves` or `Mountain`, which come with the base game. Odyssey adds many more, including `Lake`, `Valley`, `HotSprings` and `Fjord`. Put `MayRequire="Ludeon.RimWorld.Odyssey"` on Odyssey-only entries.
 
 ```xml
@@ -66,6 +61,7 @@ You can put `tint` and `tintStrength` on the extension, on a variant, or on both
 - `tintStrength` sets how far to shift, from 0 (no change) to 1 (fully recoloured, like a duotone). The default is 0.3, and a gentle shift is around 0.15 to 0.3.
 - A variant without its own `tint` uses the extension's tint.
 - An extension with only a tint and no `texPaths` tints the loading background that biome falls back to.
+- These can be applied to varients as well just put them inside the varient section as well
 
 ```xml
 <li Class="BiomeBackdrops.BiomeBackdropExtension">
@@ -73,8 +69,6 @@ You can put `tint` and `tintStrength` on the extension, on a variant, or on both
 	<tintStrength>0.25</tintStrength>
 </li>
 ```
-
-The tint travels in the material's `_ColorTwo` (rgb for the colour, alpha for the strength). `MaterialPool` includes `_ColorTwo` in its cache key, so each picture and tint pair gets its own pooled material, and there's no extra per-frame work.
 
 This mod is a framework and ships no pictures. `1.7/Patches/Examples_BiomeBackdrops.xml` is fully commented out and shows seven patterns, each on a different biome: a single picture, several pictures, mountains only, a default with variants, picture reuse with a tint, a tint-only biome, and a DLC biome with an Odyssey mutator.
 
@@ -85,7 +79,7 @@ Settings have two tabs. Changes to the biome and background lists apply the next
 **Biomes tab**
 
 - **Use loading backgrounds**: on by default. Biomes without a backdrop of their own use a loading background, chosen the same way as biome pictures.
-- **New picture on every load**: on by default. Picks a random picture from the map's pool on each game load. Off: the world tile picks a fixed one.
+- **New picture on every load**: on by default. Picks a random picture from the map's pool on each game load. Off: the tile picks a fixed one.
   - Changing brightness rebuilds materials but keeps the current picks.
   - Changing either of these two options picks again right away.
 - **Brightness**: 10 to 100%, 60% by default. Multiplies the picture so it doesn't compete with the map.
@@ -99,7 +93,3 @@ Settings have two tabs. Changes to the biome and background lists apply the next
   - VBE's own menu selection is ignored. This tab is the only place that chooses which backgrounds become backdrops.
   - VBE is read through reflection in `VbeBackgrounds.cs`, and the DLL has no reference to it. Even a reference whose code only runs when VBE is active breaks without VBE: the lambda caches the compiler generates get static fields typed with VBE classes, and at startup the game resolves the type of every static field (`ReportProbablyMissingAttributes`).
 - Without VBE, the list is the active expansions' `ExpansionDef.BackgroundImage`. VBE names its vanilla entries after the ExpansionDef, so a DLC background you switch off stays off whether or not VBE is installed.
-
-## Building
-
-`dotnet build Source/BiomeBackdrops.csproj` writes to `1.7/Assemblies`. It references the 1.7 game root (`Assembly-CSharp.dll`, `UnityStubs.dll`), and Harmony's 1.7 folder. It has no VBE reference, on purpose.
