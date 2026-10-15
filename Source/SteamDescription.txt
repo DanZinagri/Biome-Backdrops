@@ -1,0 +1,123 @@
+[h1]Biome Backdrops[/h1]
+
+Replaces the flat gray void beyond the edge of the map with a picture.
+
+The picture is fixed to the screen. It doesn't move when you scroll or zoom, so your colony looks like it sits on top of a painted backdrop instead of floating in nothing.
+
+[b]This is a framework.[/b] It ships no biome pictures of its own. Biome pictures come from add-on mods that use it. Until you have one, every map uses the loading screen backgrounds, so the mod does something out of the box.
+
+[h2]Features[/h2]
+[list]
+[*][b]Pictures per biome[/b], set by add-on mods with a short XML patch.
+[*][b]Terrain variants:[/b] different pictures for mountainous or hilly tiles, coasts, rivers, caves, or any other tile mutator.
+[*][b]Several pictures per biome:[/b] a new random pick each time you load a save, or one fixed picture per map if you prefer.
+[*][b]Tint:[/b] shift a picture toward a colour per biome or per variant, so one picture can be reused across several biomes.
+[*][b]Loading backgrounds as fallback:[/b] biomes without a picture use the main menu art of your active DLCs. With [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2775017012]Vanilla Backgrounds Expanded[/url], every background it knows is available, including ones from other mods and your own custom folder.
+[/list]
+
+[h2]Settings[/h2]
+[list]
+[*][b]Biomes tab:[/b] toggle loading backgrounds and new-picture-per-load, set the brightness, and switch off individual biomes. A switched-off biome falls back to the loading backgrounds.
+[*][b]Loading backgrounds tab:[/b] every available background with a thumbnail and its own toggle, plus enable all and disable all.
+[/list]
+List changes apply the next time you load a save.
+
+[h2]Performance[/h2]
+None you will notice. The game already draws the void around the map every frame using four large quads. This mod only swaps the material those quads are drawn with. It adds no extra draw calls and no textures loaded per frame. The only per-frame work is one dictionary lookup. The picture is chosen once per map when a save loads.
+
+[h2]Compatibility[/h2]
+[list]
+[*][b]RimWorld 1.7 only.[/b]
+[*]Safe to add to or remove from an existing save. Nothing is saved to your game.
+[*]Maps that already have their own edge look are left alone: orbit and space maps (which show the planet below), Metal Hell, and anything else with a custom edge.
+[*]The world map is not affected.
+[*]Vanilla Backgrounds Expanded is optional.
+[/list]
+
+[h1]For modders: adding biome pictures[/h1]
+
+Make a small mod that depends on Biome Backdrops ([i]DanZinagri.BiomeBackdrops[/i]) and lists it under loadAfter. Put your pictures in [i]Textures/[/i] inside a folder with a unique name, then patch the biomes.
+
+[b]Pictures:[/b] PNG of any size. The picture is scaled to cover the screen without stretching, and whatever doesn't fit is cropped, so 16:9 (1920x1080 or larger) shows the most. A texPath is relative to Textures and has no file extension.
+
+[h2]Simplest case: one or more pictures for a biome[/h2]
+[code]<Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/BiomeDef[defName="TemperateForest"]</xpath>
+    <value>
+        <li Class="BiomeBackdrops.BiomeBackdropExtension">
+            <texPaths>
+                <li>MyBackdrops/TemperateForest_A</li>
+                <li>MyBackdrops/TemperateForest_B</li>
+            </texPaths>
+        </li>
+    </value>
+</Operation>[/code]
+
+[h2]Variants: different pictures for some tiles[/h2]
+[code]<li Class="BiomeBackdrops.BiomeBackdropExtension">
+    <texPaths>
+        <li>MyBackdrops/Tundra</li>
+    </texPaths>
+    <variants>
+        <li>
+            <hilliness>
+                <li>Mountainous</li>
+            </hilliness>
+            <texPaths>
+                <li>MyBackdrops/TundraMountain</li>
+            </texPaths>
+        </li>
+        <li>
+            <mutators>
+                <li>Coast</li>
+            </mutators>
+            <texPaths>
+                <li>MyBackdrops/TundraCoast</li>
+            </texPaths>
+        </li>
+    </variants>
+</li>[/code]
+
+[b]How a picture is chosen:[/b]
+[olist]
+[*]the first variant whose conditions match the map's tile
+[*]otherwise the biome's own texPaths
+[*]otherwise a loading background, if the player has that option on
+[*]otherwise the plain gray void
+[/olist]
+
+Inside a variant, every condition you set must match, and a condition you leave out matches anything. A biome can have only variants and no texPaths. Its other tiles then keep the loading backgrounds.
+
+[h2]Fields[/h2]
+[table]
+[tr][th]Field[/th][th]Where[/th][th]Meaning[/th][/tr]
+[tr][td]texPaths[/td][td]biome, variant[/td][td]Pictures to pick from.[/td][/tr]
+[tr][td]tint[/td][td]biome, variant[/td][td]Optional (r, g, b), 0 to 1. Shifts the hue toward this colour. Brightness is kept.[/td][/tr]
+[tr][td]tintStrength[/td][td]biome, variant[/td][td]0 to 1, default 0.3. 0.15 to 0.3 is a gentle push.[/td][/tr]
+[tr][td]variants[/td][td]biome[/td][td]Tile-specific overrides, checked from top to bottom.[/td][/tr]
+[tr][td]hilliness[/td][td]variant[/td][td]Flat, SmallHills, LargeHills or Mountainous, as shown on the tile inspector.[/td][/tr]
+[tr][td]mutators[/td][td]variant[/td][td]Matches if the tile has any of the listed tile mutators.[/td][/tr]
+[/table]
+
+[b]Tint tips:[/b]
+[list]
+[*]A variant without its own tint uses the biome's tint.
+[*]A biome with only a tint and no pictures tints the loading background it falls back to.
+[/list]
+
+[b]Mutators:[/b] Coast, River, Caves and Mountain come with the base game. Odyssey adds many more, such as Lake, Valley, HotSprings, Cliffs and Fjord. Put [i]MayRequire="Ludeon.RimWorld.Odyssey"[/i] on Odyssey-only entries, and on patches for DLC or modded biomes (with that mod's packageId), so your mod still loads without them.
+
+[b]Full examples:[/b] [i]1.7/Patches/Examples_BiomeBackdrops.xml[/i] in this mod's folder has seven commented examples, each on a different biome:
+[list]
+[*]a single picture
+[*]several pictures
+[*]mountains only
+[*]a default plus terrain variants
+[*]one picture reused with a tint
+[*]a tint-only biome
+[*]a DLC biome with an Odyssey mutator
+[/list]
+
+[h2]Vanilla biomes[/h2]
+[b]Base game:[/b] TemperateForest, TemperateSwamp, TropicalRainforest, TropicalSwamp, BorealForest, Tundra, ColdBog, IceSheet, SeaIce, AridShrubland, Desert, ExtremeDesert
+[b]Odyssey:[/b] Grasslands, GlacialPlain, Glowforest, LavaField, Scarlands

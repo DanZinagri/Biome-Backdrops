@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<!-- Same pipeline settings as vanilla's MetaOverlay (the map edge clipper shader);
+	     only the fragment program differs: it samples the texture in screen space. -->
+	<ShaderDef>
+		<defName>DZ_BB_ScreenBackdrop</defName>
+		<shaderProgram>
+			<vertexShaderFileName>Transparent.vert.glsl</vertexShaderFileName>
+			<fragmentShaderFileName>DZ_BB_ScreenBackdrop.frag.glsl</fragmentShaderFileName>
+			<flipTextureST>false</flipTextureST>
+			<transparent>true</transparent>
+			<depthTest>false</depthTest>
+			<depthWrite>false</depthWrite>
+			<renderQueue>4000</renderQueue>
+			<textureWrapOverrides>
+				<li>
+					<key>_MainTex</key>
+					<value>Clamp</value>
+				</li>
+			</textureWrapOverrides>
+		</shaderProgram>
+	</ShaderDef>
+
+</Defs>

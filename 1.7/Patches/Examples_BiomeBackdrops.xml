@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Biome Backdrops - example patches
+	==================================
+
+	Everything in this file is commented out. Copy what you need into a Patches file of your
+	own mod and edit it.
+
+	SETTING UP YOUR MOD
+	- Put the picture you want to use in the textures folder, any size works. The picture is scaled to cover the screen without stretching, and whatever
+	  doesn't fit is cropped, so 16:9 (1920x1080 or larger) shows the most of it.
+
+	HOW A PICTURE IS CHOSEN FOR A MAP
+	1. The first entry in <variants> whose conditions match the map's world tile. (mutators (such as rivers), hilliness (sucha s mountains))
+	2. Otherwise the biome's own <texPaths>.
+	3. Otherwise a loading background, if the player has that option on.
+	4. Otherwise the plain gray void (Vanilla behavior).
+	With several texPaths, one is picked at random each time a save is loaded, or picked once per
+	map from its world tile if the player switched "New picture on every load" off.
+
+	FIELDS (BiomeBackdrops.BiomeBackdropExtension)
+	  texPaths       pictures for the whole biome
+	  tint           optional (r, g, b), 0 to 1: the hue to shift the picture toward. Brightness is kept. (maybe you wanna just keep tinting the same picture for certain mutators or climates)
+	  tintStrength   0 to 1 (default 0.3): how far to shift. 0.15 to 0.3 is a gentle push.
+	  variants       list of tile-specific overrides, each with:
+	    hilliness      any of Flat, SmallHills, LargeHills, Mountainous (as the tile inspector shows it, i don't think impassible is able to be landed on so i doubt that one will ever come up)
+	    mutators       matches if the tile has ANY of these tile mutators (mostly for if you want things like rivers, or maybe the mutator tints the biome some way and thus you want the background picture to match)
+	    texPaths       pictures for this variant. Leave empty to use the biome's texPaths with this variant's tint. (same as textpath for normal its just this only gets called for this varient type)
+	    tint / tintStrength   same as above. Without them, the variant uses the biome's tint.
+	  Within one variant every condition you fill in must match. A condition you leave out matches anything.
+
+	Core tile mutators include Mountain, Caves, Coast and River. Odyssey adds many more, such as
+	Lake, Valley, HotSprings, Cliffs, Plateau and Fjord. Put MayRequire="Ludeon.RimWorld.Odyssey"
+	on Odyssey-only entries so the patch still loads without the DLC.
+-->
+<Patch>
+
+	<!--
+	EXAMPLE 1: one picture for a whole biome.
+	Every Desert map shows this picture.
+
+	<Operation Class="PatchOperationAddModExtension">
+		<xpath>Defs/BiomeDef[defName="Desert"]</xpath>
+		<value>
+			<li Class="BiomeBackdrops.BiomeBackdropExtension">
+				<texPaths>
+					<li>MyBackdrops/Desert</li>
+				</texPaths>
+			</li>
+		</value>
+	</Operation>
+	-->
+
+	<!--
+	EXAMPLE 2: several pictures for one biome.
+	Each Temperate Forest map picks one of these, a new pick on every load.
+
+	<Operation Class="PatchOperationAddModExtension">
+		<xpath>Defs/BiomeDef[defName="TemperateForest"]</xpath>
+		<value>
+			<li Class="BiomeBackdrops.BiomeBackdropExtension">
+				<texPaths>
+					<li>MyBackdrops/TemperateForest_Morning</li>
+					<li>MyBackdrops/TemperateForest_Lake</li>
+					<li>MyBackdrops/TemperateForest_Autumn</li>
+				</texPaths>
+			</li>
+		</value>
+	</Operation>
+	-->
+
+	<!--
+	EXAMPLE 3: mountain tiles only.
+	Only Boreal Forest maps on a mountainous tile get a picture. The biome has no texPaths of its
+	own, so its other tiles keep using the loading backgrounds.
+
+	<Operation Class="PatchOperationAddModExtension">
+		<xpath>Defs/BiomeDef[defName="BorealForest"]</xpath>
+		<value>
+			<li Class="BiomeBackdrops.BiomeBackdropExtension">
+				<variants>
+					<li>
+						<hilliness>
+							<li>Mountainous</li>
+						</hilliness>
+						<texPaths>
+							<li>MyBackdrops/BorealMountain</li>
+						</texPaths>
+					</li>
+				</variants>
+			</li>
+		</value>
+	</Operation>
+	-->
+
+	<!--
+	EXAMPLE 4: a default picture plus variants by terrain.
+	Tundra maps on a coast get the coast picture. Hilly or mountainous tundra gets the hills
+	pictures. Anything else gets the default. Variants are checked from top to bottom, so a
+	mountainous coast counts as coast.
+
+	<Operation Class="PatchOperationAddModExtension">
+		<xpath>Defs/BiomeDef[defName="Tundra"]</xpath>
+		<value>
+			<li Class="BiomeBackdrops.BiomeBackdropExtension">
+				<texPaths>
+					<li>MyBackdrops/Tundra</li>
+				</texPaths>
+				<variants>
+					<li>
+						<mutators>
+							<li>Coast</li>
+						</mutators>
+						<texPaths>
+							<li>MyBackdrops/TundraCoast</li>
+						</texPaths>
+					</li>
+					<li>
+						<hilliness>
+							<li>LargeHills</li>
+							<li>Mountainous</li>
+						</hilliness>
+						<texPaths>
+							<li>MyBackdrops/TundraHills_A</li>
+							<li>MyBackdrops/TundraHills_B</li>
+						</texPaths>
+					</li>
+				</variants>
+			</li>
+		</value>
+	</Operation>
+	-->
+
+	<!--
+	EXAMPLE 5: reuse one picture with a tint.
+	Arid Shrubland reuses the desert picture from example 1, pushed toward a greener hue.
+
+	<Operation Class="PatchOperationAddModExtension">
+		<xpath>Defs/BiomeDef[defName="AridShrubland"]</xpath>
+		<value>
+			<li Class="BiomeBackdrops.BiomeBackdropExtension">
+				<texPaths>
+					<li>MyBackdrops/Desert</li>
+				</texPaths>
+				<tint>(0.7, 0.85, 0.55)</tint>
+				<tintStrength>0.25</tintStrength>
+			</li>
+		</value>
+	</Operation>
+	-->
+
+	<!--
+	EXAMPLE 6: tint only, no pictures.
+	Ice Sheet maps keep showing loading backgrounds, tinted icy blue to fit the biome.
+
+	<Operation Class="PatchOperationAddModExtension">
+		<xpath>Defs/BiomeDef[defName="IceSheet"]</xpath>
+		<value>
+			<li Class="BiomeBackdrops.BiomeBackdropExtension">
+				<tint>(0.6, 0.8, 1.0)</tint>
+				<tintStrength>0.35</tintStrength>
+			</li>
+		</value>
+	</Operation>
+	-->
+
+	<!--
+	EXAMPLE 7: a DLC biome, and an Odyssey-only mutator.
+	MayRequire on the Operation skips the patch when Odyssey isn't active (Grasslands comes from Odyssey).
+	The same goes for biomes from other mods: use that mod's packageId.
+
+	<Operation Class="PatchOperationAddModExtension" MayRequire="Ludeon.RimWorld.Odyssey">
+		<xpath>Defs/BiomeDef[defName="Grasslands"]</xpath>
+		<value>
+			<li Class="BiomeBackdrops.BiomeBackdropExtension">
+				<texPaths>
+					<li>MyBackdrops/Grasslands</li>
+				</texPaths>
+				<variants>
+					<li>
+						<mutators>
+							<li>Lake</li>
+							<li>River</li>
+						</mutators>
+						<texPaths>
+							<li>MyBackdrops/GrasslandsWater</li>
+						</texPaths>
+					</li>
+				</variants>
+			</li>
+		</value>
+	</Operation>
+	-->
+
+</Patch>

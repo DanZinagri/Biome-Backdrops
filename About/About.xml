@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+	<name>Biome Backdrops</name>
+	<author>DanZinagri</author>
+	<packageId>DanZinagri.BiomeBackdrops</packageId>
+	<supportedVersions>
+		<li>1.7</li>
+	</supportedVersions>
+	<description>A framework that shows a picture in the dark void beyond the edge of the map instead of flat gray.</description>
+	<modDependencies>
+		<li>
+			<packageId>brrainz.harmony</packageId>
+			<displayName>Harmony</displayName>
+			<steamWorkshopUrl>https://steamcommunity.com/workshop/filedetails/?id=2009463077</steamWorkshopUrl>
+		</li>
+	</modDependencies>
+	<loadAfter>
+		<li>brrainz.harmony</li>
+		<li>vanillaexpanded.backgrounds</li>
+	</loadAfter>
+</ModMetaData>
