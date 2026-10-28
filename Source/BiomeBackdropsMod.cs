@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -50,7 +51,9 @@ namespace BiomeBackdrops
         public BiomeBackdropsMod(ModContentPack content) : base(content)
         {
             Settings = GetSettings<BiomeBackdropsSettings>();
-            new Harmony("DanZinagri.BiomeBackdrops").PatchAll();
+            // The assembly is passed explicitly: on .NET 10 (1.7) the parameterless PatchAll() reads the calling
+            // assembly off the stack, which breaks when the JIT inlines the call (Harmony issue #395).
+            new Harmony("DanZinagri.BiomeBackdrops").PatchAll(Assembly.GetExecutingAssembly());
         }
 
         public override string SettingsCategory() => "Biome Backdrops";
